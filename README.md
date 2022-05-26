@@ -7,7 +7,7 @@ git clone https://github.com/derhelge/rorow
 cd rorow
 cp env.example .env
 ```
-Adjust the values in the env file.
+Adjust the values in the .env file.
 ```
 python3 -mvenv venv
 source venv/bin/activate
@@ -24,7 +24,6 @@ echo "from django.contrib.auth import get_user_model; User = get_user_model(); U
 python manage.py runserver
 
 ```
-Set `DEBUG = False` in `.env` when everything works as excepted.
 
 ## Usage
 After installation, log in as admin / admin and add files in in the Django admin interface http://127.0.0.1:8000/admin/. Note that the frontend is not available without any uploaded files. Only DTAG invoices, credit notes and master reports can be processed.
