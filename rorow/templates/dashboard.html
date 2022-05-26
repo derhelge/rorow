@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+  {% block head %}
+  <!-- DataTables -->
+  <link rel="stylesheet" href="{% static 'plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}">
+  {% endblock %}
+
+  {% block content %}
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1>Mobilfunkdaten - Dashboard</h1>
+          </div>
+          <div class="col-sm-6">
+            <ul class="pagination pagination-month float-sm-right">
+              {% regroup all_available_months by abrechnungsperiode_start|date:"Y-m" as month_list %}
+              {% for month_year in month_list|slice:":12" reversed %}
+              
+              <li class="page-item {% if cur_date|date:"Y-m" == month_year.list.0.abrechnungsperiode_start|date:"Y-m" %} active {% endif %}">
+                <a class="page-link" href="/dashboard/{{ month_year.list.0.abrechnungsperiode_start|date:"Y/m"}}">
+                    <p class="page-month">{{ month_year.list.0.abrechnungsperiode_start|date:"b" }}</p>
+                    <p class="page-year">{{ month_year.list.0.abrechnungsperiode_start|date:"Y" }}</p>
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+
+        <div class="row">
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="info-box mb-3">
+              <span class="info-box-icon bg-danger elevation-1"><i class="fa fa-coins"></i></span>
+              <div class="info-box-content">
+                <span class="info-box-text">Gesamtkosten (brutto) {{ cur_date|date:"F Y" }}</span>
+                <span class="info-box-number">{{ gesamtkosten|floatformat:2 }} €</span>
+              </div>
+              <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+          </div>
+          <!-- /.col -->
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="info-box">
+              <span class="info-box-icon bg-info elevation-1"><i class="fas fa-cog"></i></span>
+              <div class="info-box-content">
+                <span class="info-box-text">verantwortliche Kostenstellen</span>
+                <span class="info-box-number">
+                  {{ verantwortliche_ks }}
+                </span>
+              </div>
+              <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+          </div>
+          <!-- /.col -->
+
+          <!-- fix for small devices only -->
+          <div class="clearfix hidden-md-up"></div>
+
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="info-box mb-3">
+              <span class="info-box-icon bg-success elevation-1"><i class="fas fa-sync-alt"></i></span>
+              <div class="info-box-content">
+                <span class="info-box-text">mögliche Verlängerungen</span>
+                <span class="info-box-number">{{ total_item_vvl }}</span>
+              </div>
+              <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+          </div>
+          <!-- /.col -->
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="info-box mb-3">
+              <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-users"></i></span>
+              <div class="info-box-content">
+                <span class="info-box-text">Rufnummern</span>
+                <span class="info-box-number">{{ verantwortliche_rufnummern }}</span>
+              </div>
+              <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+          </div>
+          <!-- /.col -->
+        </div>
+        <!-- /.row -->
+
+        <div class="row">
+          <!-- /.col (LEFT) -->
+          <div class="col-md-6">
+            <!-- BAR CHART -->
+            <div class="card card">
+              <div class="card-header">
+                <h3 class="card-title">Entwicklung der Gesamtkosten</h3>
+
+                <div class="card-tools">
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="chart"><div class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand"><div class=""></div></div><div class="chartjs-size-monitor-shrink"><div class=""></div></div></div>
+                  <canvas id="stackedBarChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 766px;" width="766" height="250" class="chartjs-render-monitor"></canvas>
+                </div>
+              </div>
+              <!-- /.card-body -->
+            </div>
+            <!-- Kostentreiber CHART -->
+            <div class="card card">
+              <div class="card-header">
+                <h3 class="card-title">Kostentreiber {{ cur_date|date:"F Y" }}</h3>
+
+                <div class="card-tools">
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="chart"><div class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand"><div class=""></div></div><div class="chartjs-size-monitor-shrink"><div class=""></div></div></div>
+                  <canvas id="stackedBarChart2" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 766px;" width="766" height="250" class="chartjs-render-monitor"></canvas>
+                </div>
+              </div>
+              <!-- /.card-body -->
+            </div>
+
+          </div>
+          <!-- /.col (RIGHT) -->
+          <div class="col-md-6">
+            {% if request.user.is_superuser %}
+
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Rechnungsübersicht (brutto)</h3>
+              </div>
+              <!-- /.card-header -->
+              <div class="card-body">
+
+                  {% for rechnung in superuser_rechnungen %}
+
+                  <h5>Rechnung ({{ rechnung.rechnungsnummer }}) <span class="float-right badge badge-danger">{{ rechnung.rechnung_summe_brutto }} €</span></h5>
+                  <hr>
+                  {% endfor %}
+                  {% for gutschrift in superuser_gutschriften %}
+
+                  <h5>Gutschrift ({{ gutschrift.gutschriftsnummer }}) <span class="float-right badge badge-success">{{ gutschrift.eur_brutto }} €</span></h5>
+
+                  {% endfor %}
+
+              </div>
+              <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+            {% endif %}
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Kosten pro Kostenstelle und Rechnung/Rahmenvertrag</h3>
+              </div>
+              <!-- /.card-header -->
+              <div class="card-body">
+                <table id="kostenstellenkosten" class="table table-bordered table-striped table-hover">
+                  <thead>
+                    <tr>
+                      <th>Kostenstelle</th>
+                      <th>Rahmenvertragsnummer</th>
+                      <th>Rechnungsnummer</th>
+                      <th>Rechnungssumme (brutto)</th>
+                  </tr>
+                  </thead>
+
+                  <tbody>
+                  {% for row in kostenstellen_sums %}
+                  <tr>
+                    <td>{{ row.kostenstelle__kostenstelle }}</td>
+                    <td>{{ row.grunddaten__rahmenvertragsnummer }}</td>
+                    <td>{{ row.grunddaten__rechnungsnummer }}</td>
+                    <td>{{ row.summe|floatformat:2 }}</td>
+                  </tr>
+                  {% endfor %}
+                  </tbody>
+
+              </table>
+              </div>
+              <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+          </div>
+          <!-- /.col -->
+        </div>
+        <!-- /.row -->
+
+      </div>
+      <!-- /.container-fluid -->
+    </section>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+  {% endblock %}
+
+  {% block javascripts %}
+<!-- DataTables  & Plugins -->
+<script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
+<script src="{% static 'plugins/jszip/jszip.min.js' %}"></script>
+<script src="{% static 'plugins/pdfmake/pdfmake.min.js' %}"></script>
+<script src="{% static 'plugins/pdfmake/vfs_fonts.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-sum/sum().js' %}"></script>
+
+<script src="{% static 'plugins/inputmask/jquery.inputmask.min.js' %}"></script>
+<script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+
+{% endblock %}
+
+
+{% block sitejavascripts %}
+<script>
+$(function () {
+  $("#kostenstellenkosten").DataTable({
+     "pageLength": 5,
+      "responsive": true, "lengthChange": false, "autoWidth": false,
+      "buttons": ["csv", {
+      extend: 'excel',
+      title: 'Mobilfunk-Kst-{{ cur_date|date:"Y-m" }}',
+      autoFilter: true,
+      exportOptions: {
+          columns: ':visible',
+          format: {
+              body: function(data, row, column, node) {
+                  data = $('<p>' + data + '</p>').text();
+                  return $.isNumeric(data.replace(',', '.')) ? data.replace(',', '.') : data;
+              }
+          }
+      }
+  }, "pdf", "print"]
+    }).buttons().container().appendTo('#kostenstellenkosten_wrapper .col-md-6:eq(0)');
+
+
+
+    var areaChartData = {
+      labels  : {{ kostenentwicklung.labels|safe }},
+      datasets: [
+        {
+          label               : 'Fixkosten',
+          backgroundColor     : 'rgba(210, 214, 222, 1)',
+          data                : {{ kostenentwicklung.data_f|safe }}
+        },
+        {
+          label               : 'variable Kosten',
+          backgroundColor     : 'rgba(60,141,188,0.9)',
+          data                : {{ kostenentwicklung.data_v|safe }}
+        },
+      ]
+    }
+
+    var areaChartData2 = {
+      labels  : {{ kostentreiber.labels|safe }},
+      datasets: [
+        {
+          label               : 'Fixkosten',
+          backgroundColor     : 'rgba(210, 214, 222, 1)',
+          data                : {{ kostentreiber.data_f|safe }}
+        },
+        {
+          label               : 'variable Kosten',
+          backgroundColor     : 'rgba(60,141,188,0.9)',
+          data                : {{ kostentreiber.data_v|safe }}
+        },
+      ]
+    }
+    //---------------------
+    //- STACKED BAR CHART -
+    //---------------------
+    var stackedBarChartCanvas = $('#stackedBarChart').get(0).getContext('2d')
+    var stackedBarChartData = $.extend(true, {}, areaChartData)
+
+    var stackedBarChartOptions = {
+      responsive              : true,
+      maintainAspectRatio     : false,
+      scales: {
+        xAxes: [{
+          stacked: true,
+        }],
+        yAxes: [{
+          stacked: true
+        }]
+      }
+    }
+
+    new Chart(stackedBarChartCanvas, {
+      type: 'bar',
+      data: stackedBarChartData,
+      options: stackedBarChartOptions
+    })
+
+    const stackedBarChartCanvas2 = document.getElementById('stackedBarChart2');
+    var stackedBarChartData2 = $.extend(true, {}, areaChartData2)
+
+    const sbChart = new Chart(stackedBarChartCanvas2, {
+      type: 'bar',
+      data: stackedBarChartData2,
+      options: stackedBarChartOptions
+    })
+
+    function clickHandler(evt) {
+      const points = sbChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+  
+      if (points.length) {
+          const firstPoint = points[0];
+          const label = sbChart.data.labels[firstPoint._index];
+          window.open('/rufnummer/'+label+'/' + '{{ cur_date|date:"Y/m" }}');
+      }
+  }
+  
+    stackedBarChartCanvas2.onclick = clickHandler;
+
+
+})
+</script>
+
+{% endblock %}

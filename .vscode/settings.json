@@ -1,0 +1,16 @@
+{
+    "python.terminal.activateEnvironment": true,
+    "git.ignoreLimitWarning": true,
+    "html.validate.scripts": false,
+    "python.analysis.extraPaths": ["${workspaceFolder}/rorow"],
+    
+    "files.associations": {
+        "**/*.html": "html",
+        "**/templates/**/*.html": "django-html",
+        "**/templates/**/*": "django-txt",
+        "**/requirements{/**,*}.{txt,in}": "pip-requirements"
+    },
+    
+    "python.defaultInterpreterPath": "${workspaceFolder}/venv/bin/python",
+
+}

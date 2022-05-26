@@ -1,0 +1,20 @@
+
+.btn-filter{
+    color:#fff !important;
+    background-color: #17a2b8 !important;
+    border-color: #17a2b8 !important;
+}
+
+.pagination-month .page-item:first-child .page-link, .pagination-month .page-item:last-child .page-link {
+    height: 100%;
+    font-size: 1rem !important;
+  }
+
+  .page-item.active .page-link {
+    color: #fff !important;
+    background-color: #17a2b8 !important;
+    border-color: #17a2b8 !important;
+  }
+  .page-link {
+    color: #17a2b8 !important;
+  }

@@ -1,0 +1,11 @@
+# Django #
+*.log
+*.pot
+*.pyc
+__pycache__
+db.sqlite3
+venv/
+rorow/startover.sh
+*.ipynb
+rorow/.env
+rorow/staticfiles

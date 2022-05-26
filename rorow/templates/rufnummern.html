@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Rufnummern{% endblock %}
+
+  {% block head %}
+  <!-- DataTables -->
+  <link rel="stylesheet" href="{% static 'plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}">
+  {% endblock %}
+
+  {% block content %}
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1>verwaltete Rufnummern</h1>
+          </div>
+          <div class="col-sm-6">
+            <ul class="pagination pagination-month float-sm-right">
+              {% regroup all_available_months by abrechnungsperiode_start|date:"Y-m" as month_list %}
+              {% for month_year in month_list|slice:":12" reversed %}
+              
+              <li class="page-item {% if cur_date|date:"Y-m" == month_year.list.0.abrechnungsperiode_start|date:"Y-m" %} active {% endif %}">
+                <a class="page-link" href="/rufnummern/{{ month_year.list.0.abrechnungsperiode_start|date:"Y/m"}}">
+                    <p class="page-month">{{ month_year.list.0.abrechnungsperiode_start|date:"b" }}</p>
+                    <p class="page-year">{{ month_year.list.0.abrechnungsperiode_start|date:"Y" }}</p>
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+
+
+        <div class="row">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Kosten pro Rufnummer {{ cur_date|date:'F Y' }}</h3>
+              </div>
+              <!-- /.card-header -->
+              <div class="card-body">
+
+                <table id="rufnummern" class="table table-bordered table-striped table-hover">
+                  <thead>
+                    <tr>
+                      <th>Rufnummer</th>
+                      <th>Kostenstelle</th>
+                      <th>Kostenstellennutzer</th>
+                      <th>Betrag DTAG (brutto)</th>
+                      <th>Fixkosten (brutto)</th>
+                      <th>variable Kosten (brutto)</th>
+                      <th>Drittanbieterkosten (brutto)</th>
+                      <th>Rechnungssumme (brutto)</th>
+                      <th>VVL</th>
+                      <th>Bindefristende</th>
+                      <th>Tarif</th>
+                  </tr>
+                  </thead>
+
+                  <tbody>
+                  {% for row in rufnummern_list %}
+                  <tr>
+                    <td>{{ row.rufnummer }}</td>
+                    <td>{{ row.kostenstelle }}</td>
+                    <td>{{ row.kostenstellennutzer }}</td>
+                    <td>{{ row.betrag_dtag_brutto|floatformat:2 }}</td>
+                    <td>{{ row.fixkosten|floatformat:2 }}</td>
+                    <td>{{ row.variable_kosten|floatformat:2 }}</td>
+                    <td>{{ row.drittanbieterkosten|floatformat:2 }}</td>
+                    <td>{{ row.summe_komplett_brutto|floatformat:2 }}</td>
+                    <td>{{ row.vvlberechtigung|yesno:"Ja,Nein" }}</td>
+                    <td>{{ row.bindefristende|date:'Y-m-d' }}</td>
+                    <td>{{ row.tarif }}</td>
+                  </tr>
+                  {% endfor %}
+                  </tbody>
+
+              </table>
+              </div>
+              <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+          </div>
+          <!-- /.col -->
+        </div>
+        <!-- /.row -->
+
+
+      </div>
+      <!-- /.container-fluid -->
+    </section>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+  {% endblock %}
+
+  {% block javascripts %}
+<!-- DataTables  & Plugins -->
+<script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
+<script src="{% static 'plugins/jszip/jszip.min.js' %}"></script>
+<script src="{% static 'plugins/pdfmake/pdfmake.min.js' %}"></script>
+<script src="{% static 'plugins/pdfmake/vfs_fonts.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-sum/sum().js' %}"></script>
+
+<script src="{% static 'plugins/inputmask/jquery.inputmask.min.js' %}"></script>
+<script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+
+{% endblock %}
+
+
+{% block sitejavascripts %}
+{% regroup all_available_months by abrechnungsperiode_start|date:"Y-m" as month_list %}
+<script>
+
+$(function () {
+    $("#rufnummern").DataTable({
+      "responsive": true,
+      "lengthChange": false,
+      "autoWidth": false,
+      "order": [[ 7, "desc" ]],
+      "columnDefs": [
+            {
+                targets:0,
+                render: function ( data, type, row, meta ) {
+                    if(type === 'display'){
+                        data = '<a href="/rufnummer/' + encodeURIComponent(data) + '/{{ cur_date|date:'Y/m' }}">' + data + '</a>';
+                    }
+
+                    return data;
+                },
+                
+            },
+            {
+              "visible": false, "targets": [8,9],
+            }
+        ],
+      "buttons":
+        ["copy", "csv",
+          {
+            extend: 'excel',
+            autoFilter: true,
+            exportOptions: {
+                columns: ':visible',
+                format: {
+                    body: function(data, row, column, node) {
+                        data = $('<p>' + data + '</p>').text();
+                        return $.isNumeric(data.replace(',', '.')) ? data.replace(',', '.') : data;
+                    }
+                }
+            }
+          },
+          "pdf",
+          "print",
+          "colvis",
+          {
+            extend: 'collection',
+            text: '<b>Zeitraum</b>',
+            className: "btn-filter",
+            buttons:
+            [
+            {% for month_year in month_list|slice:":12" %}
+                {
+                    text: "{{ month_year.list.0.abrechnungsperiode_start|date:"F Y" }}",
+                    className: "btn-primary",
+                    action: function ( e, dt, node, config ) {
+                      window.location.href ="/rufnummern/{{ month_year.list.0.abrechnungsperiode_start|date:"Y/m"}}";
+                    }
+                },
+                {% endfor %}
+              ]
+          }
+      ]
+    }).buttons().container().appendTo('#rufnummern_wrapper .col-md-6:eq(0)');
+    
+})
+</script>
+
+{% endblock %}
+
+
+ 
+
