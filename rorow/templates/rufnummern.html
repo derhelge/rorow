@@ -64,6 +64,7 @@
                       <th>Drittanbieterkosten (brutto)</th>
                       <th>Rechnungssumme (brutto)</th>
                       <th>VVL</th>
+                      <th>Kündigungstermin</th>
                       <th>Bindefristende</th>
                       <th>Tarif</th>
                   </tr>
@@ -81,6 +82,7 @@
                     <td>{{ row.drittanbieterkosten|floatformat:2 }}</td>
                     <td>{{ row.summe_komplett_brutto|floatformat:2 }}</td>
                     <td>{{ row.vvlberechtigung|yesno:"Ja,Nein" }}</td>
+                    <td>{{ row.kuendigungstermin|date:'Y-m-d' }}</td>
                     <td>{{ row.bindefristende|date:'Y-m-d' }}</td>
                     <td>{{ row.tarif }}</td>
                   </tr>
@@ -152,7 +154,7 @@ $(function () {
                 
             },
             {
-              "visible": false, "targets": [8,9],
+              "visible": false, "targets": [8,9,10],
             }
         ],
       "buttons":

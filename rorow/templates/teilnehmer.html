@@ -154,6 +154,7 @@
                         <b>Daten-Otionen:</b> {{ vertragsdaten.0.datenoptionen }}<br>
                         <b>Voice-Optionen:</b> {{ vertragsdaten.0.voiceoptionen }}<br>
                         <b>Roaming-Optionen:</b> {{ vertragsdaten.0.roamingoptionen }}<br>
+                        {% if vertragsdaten.0.kuendigungstermin %}<b>Kündigungstermin:</b> {{ vertragsdaten.0.kuendigungstermin|date:'d.m.Y' }}<br>{% endif %}
                         <b>Bindefrist-Ende:</b> {{ vertragsdaten.0.bindefristende|date:'d.m.Y' }}<br>
                         <b>Vertragsverlängerung möglich:</b> {{ vertragsdaten.0.vvlberechtigung|yesno:"Ja,Nein" }}<br>
 

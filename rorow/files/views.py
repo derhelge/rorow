@@ -206,6 +206,7 @@ class RufnummernListView(YearMonthUserNavMixin,LoginRequiredMixin,TemplateView):
                 kostenstelle=F('kostenstelle__kostenstelle'),
                 vvlberechtigung=Subquery(mr_subquery.values('vvlberechtigung')),
                 bindefristende=Subquery(mr_subquery.values('bindefristende')),
+                kuendigungstermin=Subquery(mr_subquery.values('kuendigungstermin')),
                 tarif=Subquery(mr_subquery.values('tarif')),
             )
             .order_by('-summe_komplett_brutto'))
