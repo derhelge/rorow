@@ -35,7 +35,7 @@ def _clean_grunddaten_from_sheet(sheets):
     rechnung_grunddaten['rechnung_betrag_dtag_brutto'] = float(rs[rs['text'] == 'Betrag Telekom Deutschland GmbH']['brutto_betrag'].item())
     rechnung_grunddaten['rechnung_betrag_drittanbieter_brutto'] = float(rs[rs['text'] == 'Genutzte Angebote']['betrag'].sum())
 
-    rechnung_grunddaten['rechnung_summe_netto'] = float(rs[rs['text'] == 'Rechnungsbetrag']['summen_betrag_netto'].item())
+    rechnung_grunddaten['rechnung_summe_netto'] = float(rs[(rs['text'] == 'Rechnungsbetrag') | (rs['text'] == 'Summe Betrag')]['summen_betrag_netto'].item())
     rechnung_grunddaten['rechnung_summe_brutto'] = float(rs[rs['text'] == 'Zu zahlender Betrag']['brutto_betrag'].item())
 
     rp = sheets['Rechnungspositionen']
